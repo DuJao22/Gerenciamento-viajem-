@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Finalizar Viagem</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #222;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .finalizar-form {
+            background: #333;
+            padding: 20px;
+            border-radius: 5px;
+        }
+        .finalizar-form h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .finalizar-form button {
+            width: 100%;
+            padding: 10px;
+            background: #ff6f61;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            color: #fff;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="finalizar-form">
+        <h1>Finalizar Viagem</h1>
+        <form method="POST" action="/finalizar">
+            <button type="submit">Finalizar Viagem</button>
+        </form>
+    </div>
+</body>
+</html>
