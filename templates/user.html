@@ -1,6 +1,8 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Perfil do Usuário</title>
     <style>
         body {
@@ -80,7 +82,7 @@
         th {
             background: #555;
         }
-        button.register, button.end {
+        button.register, button.end, button.start {
             background: #ff6f61;
             border: none;
             padding: 10px 20px;
@@ -131,7 +133,7 @@
                 background: none;
                 font-weight: bold;
             }
-            button.register, button.end {
+            button.register, button.end, button.start {
                 width: 100%;
             }
         }
@@ -148,13 +150,14 @@
         <form action="/edit_profile/{{ user[0] }}" method="post">
             <button type="submit">Configurar Perfil</button>
         </form>
+        <form action="/start_travel/{{ user[0] }}" method="post">
+            <button type="submit" class="start">Iniciar Viagem</button>
+        </form>
     </div>
     <div class="main">
         <h2>Registros de Viagem</h2>
         <table>
             <tr>
-                <th>Número da Nota</th>
-                <th>Destino</th>
                 <th>Motivo</th>
                 <th>Observação</th>
                 <th>Valor</th>
@@ -164,13 +167,17 @@
                 <td>{{ record[2] }}</td>
                 <td>{{ record[3] }}</td>
                 <td>{{ record[4] }}</td>
-                <td>{{ record[5] }}</td>
-                <td>{{ record[6] }}</td>
             </tr>
             {% endfor %}
         </table>
-        <form action="/start_trip/{{ user[0] }}" method="get">
-            <button type="submit" class="register">Iniciar Viagem</button>
+        <form action="/add_record/{{ user[0] }}" method="post">
+            <input type="text" name="reason" placeholder="Motivo">
+            <input type="text" name="observation" placeholder="Observação">
+            <input type="number" step="0.01" name="value" placeholder="Valor">
+            <button type="submit" class="register">Registrar</button>
+        </form>
+        <form action="/end_record/{{ user[0] }}" method="post">
+            <button type="submit" class="end">Finalizar Viagem</button>
         </form>
     </div>
     <footer>
@@ -187,4 +194,4 @@
         }
     </script>
 </body>
-                                       </html>
+</html>
