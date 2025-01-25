@@ -36,12 +36,14 @@
         <h1>{{ user[1] }}</h1>
         <p>Idade: {{ user[2] }}</p>
         <p>Data de Nascimento: {{ user[3] }}</p>
-        <button onclick="window.location.href='/inicio_viagem'">Iniciar Nova Viagem</button>
-        <button onclick="window.location.href='/registrar'">Registrar Gastos</button>
-        <button onclick="window.location.href='/finalizar'">Finalizar Viagem</button>
     </div>
     <div class="content">
-        <h2>Bem-vindo ao seu Dashboard!</h2>
+        <h2>Iniciar Nova Viagem</h2>
+        <form method="POST" action="/dashboard">
+            <input type="text" name="numero_nota" placeholder="Número da Nota" required>
+            <input type="text" name="destino" placeholder="Destino">
+            <button type="submit">Iniciar Viagem</button>
+        </form>
     </div>
 </body>
 </html>
