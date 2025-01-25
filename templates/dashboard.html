@@ -108,7 +108,7 @@
             <input type="number" step="0.01" name="valor" placeholder="Valor" required>
             <button type="submit" name="registrar">Registrar Gasto</button>
         </form>
-        <form method="POST" action="/dashboard">
+        <form method="POST" action="/finalizar_viagem/{{ viagem[0] }}">
             <button type="submit" name="finalizar">Finalizar Viagem</button>
         </form>
         {% else %}
