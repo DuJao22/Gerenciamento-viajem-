@@ -155,8 +155,7 @@ def end_record(user_id):
         conn.execute('DELETE FROM travel_records WHERE user_id = ?', (user_id,))
         conn.commit()
         conn.close()
-        flash(f'Total gasto na viagem: {total_value:.2f}')
-        return redirect(url_for('user', user_id=user_id))
+        return render_template('report.html', records=records, total_value=total_value)
     else:
         return redirect(url_for('login'))
 
