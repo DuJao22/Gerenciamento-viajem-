@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Detalhes da Viagem</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #222;
+            color: #fff;
+            padding: 20px;
+        }
+        h1 {
+            text-align: center;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        table, th, td {
+            border: 1px solid #555;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background: #333;
+        }
+        form {
+            margin-top: 20px;
+        }
+        input, button {
+            padding: 10px;
+            margin: 5px 0;
+            border: none;
+            border-radius: 5px;
+        }
+        button {
+            background: #ff6f61;
+            cursor: pointer;
+            color: #fff;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Detalhes da Viagem - Nota: {{ numero_nota }}</h1>
+    <table>
+        <tr>
+            <th>Motivo</th>
+            <th>Observação</th>
+            <th>Valor</th>
+        </tr>
+        {% for gasto in gastos %}
+        <tr>
+            <td>{{ gasto[2] }}</td>
+            <td>{{ gasto[3] }}</td>
+            <td>{{ gasto[4] }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+    <form method="POST" action="">
+        <input type="text" name="motivo" placeholder="Motivo" required>
+        <input type="text" name="observacao" placeholder="Observação">
+        <input type="number" step="0.01" name="valor" placeholder="Valor" required>
+        <button type="submit" name="registrar">Registrar Gasto</button>
+    </form>
+    <form method="POST" action="">
+        <button type="submit" name="finalizar">Finalizar Viagem</button>
+    </form>
+</body>
+    </html>
