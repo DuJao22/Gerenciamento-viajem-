@@ -1,184 +1,110 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 import sqlite3
-import os
-import time
-from werkzeug.security import generate_password_hash, check_password_hash
+from datetime import datetime
 
 app = Flask(__name__)
 app.secret_key = 'super_secret_key'
-app.config['UPLOAD_FOLDER'] = 'static/profile_pics/'
 
 def init_db():
     conn = sqlite3.connect('database.db')
     conn.execute('''
-        CREATE TABLE IF NOT EXISTS users (
+        CREATE TABLE IF NOT EXISTS usuarios (
             id INTEGER PRIMARY KEY,
-            name TEXT,
-            login TEXT UNIQUE,
-            password TEXT,
-            age INTEGER,
-            birthdate TEXT,
-            profile_pic TEXT
+            nome TEXT,
+            idade INTEGER,
+            data_nascimento TEXT
         )
     ''')
     conn.execute('''
-        CREATE TABLE IF NOT EXISTS travel_records (
+        CREATE TABLE IF NOT EXISTS viagens (
             id INTEGER PRIMARY KEY,
-            user_id INTEGER,
-            reason TEXT,
-            observation TEXT,
-            value REAL
+            usuario_id INTEGER,
+            numero_nota TEXT,
+            destino TEXT,
+            data_inicio TEXT,
+            finalizada BOOLEAN,
+            FOREIGN KEY(usuario_id) REFERENCES usuarios(id)
+        )
+    ''')
+    conn.execute('''
+        CREATE TABLE IF NOT EXISTS gastos (
+            id INTEGER PRIMARY KEY,
+            viagem_id INTEGER,
+            motivo TEXT,
+            observacao TEXT,
+            valor REAL,
+            FOREIGN KEY(viagem_id) REFERENCES viagens(id)
         )
     ''')
     conn.close()
 
-@app.route('/')
+@app.route('/login', methods=['GET', 'POST'])
 def login():
+    if request.method == 'POST':
+        # Aqui você pode adicionar lógica de autenticação
+        return redirect(url_for('dashboard'))
     return render_template('login.html')
 
-@app.route('/login', methods=['POST'])
-def do_login():
-    login = request.form['login']
-    password = request.form['password']
-    if login == 'DUJAO22' and password == '20E10':
-        session['user'] = 'admin'
-        return redirect(url_for('admin'))
-    else:
-        conn = sqlite3.connect('database.db')
-        user = conn.execute('SELECT * FROM users WHERE login = ?', (login,)).fetchone()
-        conn.close()
-        if user and check_password_hash(user[3], password):
-            session['user'] = user[0]
-            return redirect(url_for('user', user_id=user[0]))
-        else:
-            return redirect(url_for('login'))
-
-@app.route('/admin')
+@app.route('/admin', methods=['GET', 'POST'])
 def admin():
-    if 'user' in session and session['user'] == 'admin':
-        conn = sqlite3.connect('database.db')
-        users = conn.execute('SELECT * FROM users').fetchall()
-        conn.close()
-        return render_template('admin.html', users=users)
-    else:
-        return redirect(url_for('login'))
+    conn = sqlite3.connect('database.db')
+    if request.method == 'POST':
+        nome = request.form['nome']
+        idade = request.form['idade']
+        data_nascimento = request.form['data_nascimento']
+        conn.execute('INSERT INTO usuarios (nome, idade, data_nascimento) VALUES (?, ?, ?)', (nome, idade, data_nascimento))
+        conn.commit()
+    usuarios = conn.execute('SELECT * FROM usuarios').fetchall()
+    conn.close()
+    return render_template('admin.html', usuarios=usuarios)
 
-@app.route('/user/<int:user_id>')
-def user(user_id):
-    if 'user' in session and session['user'] == user_id:
-        conn = sqlite3.connect('database.db')
-        user = conn.execute('SELECT * FROM users WHERE id = ?', (user_id,)).fetchone()
-        records = conn.execute('SELECT * FROM travel_records WHERE user_id = ?', (user_id,)).fetchall()
-        conn.close()
-        return render_template('user.html', user=user, records=records)
-    else:
-        return redirect(url_for('login'))
+@app.route('/dashboard')
+def dashboard():
+    # Supondo que o usuário logado tenha ID 1
+    user_id = 1
+    conn = sqlite3.connect('database.db')
+    user = conn.execute('SELECT * FROM usuarios WHERE id = ?', (user_id,)).fetchone()
+    conn.close()
+    return render_template('dashboard.html', user=user)
 
-@app.route('/edit_profile/<int:user_id>', methods=['POST'])
-def edit_profile(user_id):
-    if 'user' in session and session['user'] == user_id:
-        name = request.form['name']
-        age = request.form['age']
-        birthdate = request.form['birthdate']
+@app.route('/inicio_viagem', methods=['GET', 'POST'])
+def inicio_viagem():
+    if request.method == 'POST':
+        user_id = 1  # Supondo que o usuário logado tenha ID 1
+        numero_nota = request.form['numero_nota']
+        destino = request.form['destino']
+        data_inicio = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         conn = sqlite3.connect('database.db')
-        conn.execute('UPDATE users SET name = ?, age = ?, birthdate = ? WHERE id = ?', (name, age, birthdate, user_id))
+        conn.execute('INSERT INTO viagens (usuario_id, numero_nota, destino, data_inicio, finalizada) VALUES (?, ?, ?, ?, ?)', (user_id, numero_nota, destino, data_inicio, False))
         conn.commit()
         conn.close()
-        return redirect(url_for('user', user_id=user_id))
-    else:
-        return redirect(url_for('login'))
+        return redirect(url_for('dashboard'))
+    return render_template('inicio_viagem.html')
 
-@app.route('/upload_photo/<int:user_id>', methods=['POST'])
-def upload_photo(user_id):
-    if 'user' in session and session['user'] == user_id:
-        file = request.files['profile_pic']
-        if file:
-            filename = f'{user_id}.png'
-            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            file.save(filepath)
-            conn = sqlite3.connect('database.db')
-            conn.execute('UPDATE users SET profile_pic = ? WHERE id = ?', (filename, user_id))
-            conn.commit()
-            conn.close()
-        return redirect(url_for('user', user_id=user_id))
-    else:
-        return redirect(url_for('login'))
-
-@app.route('/add_record/<int:user_id>', methods=['POST'])
-def add_record(user_id):
-    if 'user' in session and session['user'] == user_id:
-        reason = request.form['reason']
-        observation = request.form['observation']
-        value = request.form['value']
-        
-        # Create a new database for the travel record
-        db_name = f'travel_record_{user_id}_{int(time.time())}.db'
-        conn = sqlite3.connect(db_name)
-        conn.execute('''
-            CREATE TABLE IF NOT EXISTS travel_record (
-                id INTEGER PRIMARY KEY,
-                user_id INTEGER,
-                reason TEXT,
-                observation TEXT,
-                value REAL,
-                name TEXT,
-                login TEXT,
-                age INTEGER,
-                birthdate TEXT,
-                profile_pic TEXT
-            )
-        ''')
-        user = conn.execute('SELECT * FROM users WHERE id = ?', (user_id,)).fetchone()
-        conn.execute('INSERT INTO travel_record (user_id, reason, observation, value, name, login, age, birthdate, profile_pic) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', 
-                     (user_id, reason, observation, value, user[1], user[2], user[4], user[5], user[6]))
-        conn.commit()
-        conn.close()
-        
-        return redirect(url_for('user', user_id=user_id))
-    else:
-        return redirect(url_for('login'))
-
-@app.route('/add_user', methods=['POST'])
-def add_user():
-    if 'user' in session and session['user'] == 'admin':
-        name = request.form['name']
-        login = request.form['login']
-        password = request.form['password']
-        age = request.form['age']
-        birthdate = request.form['birthdate']
-        
-        # Verificação dos campos obrigatórios
-        if not name or not login or not password or not age or not birthdate:
-            return redirect(url_for('admin', error='Todos os campos são obrigatórios'))
-
-        hashed_password = generate_password_hash(password)
-        profile_pic = 'default_user.png'  # Default profile picture
-
-        try:
-            conn = sqlite3.connect('database.db')
-            conn.execute('INSERT INTO users (name, login, password, age, birthdate, profile_pic) VALUES (?, ?, ?, ?, ?, ?)', 
-                         (name, login, hashed_password, age, birthdate, profile_pic))
-            conn.commit()
-            conn.close()
-        except sqlite3.IntegrityError:
-            return redirect(url_for('admin', error='Login já existe'))
-        
-        return redirect(url_for('admin'))
-    else:
-        return redirect(url_for('login'))
-
-@app.route('/end_record/<int:user_id>', methods=['POST'])
-def end_record(user_id):
-    if 'user' in session and session['user'] == user_id:
+@app.route('/registrar', methods=['GET', 'POST'])
+def registrar():
+    if request.method == 'POST':
+        viagem_id = 1  # Supondo que a viagem ativa tenha ID 1
+        motivo = request.form['motivo']
+        observacao = request.form['observacao']
+        valor = request.form['valor']
         conn = sqlite3.connect('database.db')
-        records = conn.execute('SELECT * FROM travel_records WHERE user_id = ?', (user_id,)).fetchall()
-        total_value = sum(record[4] for record in records)
-        conn.execute('DELETE FROM travel_records WHERE user_id = ?', (user_id,))
+        conn.execute('INSERT INTO gastos (viagem_id, motivo, observacao, valor) VALUES (?, ?, ?, ?)', (viagem_id, motivo, observacao, valor))
         conn.commit()
         conn.close()
-        return render_template('report.html', records=records, total_value=total_value)
-    else:
-        return redirect(url_for('login'))
+        return redirect(url_for('registrar'))
+    conn = sqlite3.connect('database.db')
+    gastos = conn.execute('SELECT * FROM gastos WHERE viagem_id = 1').fetchall()  # Supondo que a viagem ativa tenha ID 1
+    conn.close()
+    return render_template('registrar.html', gastos=gastos)
+
+@app.route('/finalizar')
+def finalizar():
+    conn = sqlite3.connect('database.db')
+    conn.execute('UPDATE viagens SET finalizada = ? WHERE id = ?', (True, 1))  # Supondo que a viagem ativa tenha ID 1
+    conn.commit()
+    conn.close()
+    return redirect(url_for('dashboard'))
 
 if __name__ == '__main__':
     init_db()
