@@ -2,7 +2,6 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 import sqlite3
 import os
 from werkzeug.security import generate_password_hash, check_password_hash
-from datetime import datetime, timedelta
 
 app = Flask(__name__)
 app.secret_key = 'super_secret_key'
@@ -25,12 +24,18 @@ def init_db():
         CREATE TABLE IF NOT EXISTS travel_records (
             id INTEGER PRIMARY KEY,
             user_id INTEGER,
-            invoice_number TEXT,
-            destination TEXT,
             reason TEXT,
             observation TEXT,
             value REAL,
-            date_created TEXT
+            travel_id INTEGER
+        )
+    ''')
+    conn.execute('''
+        CREATE TABLE IF NOT EXISTS travels (
+            id INTEGER PRIMARY KEY,
+            user_id INTEGER,
+            start_date TEXT,
+            end_date TEXT
         )
     ''')
     conn.close()
@@ -71,50 +76,9 @@ def user(user_id):
     if 'user' in session and session['user'] == user_id:
         conn = sqlite3.connect('database.db')
         user = conn.execute('SELECT * FROM users WHERE id = ?', (user_id,)).fetchone()
-        records = conn.execute('SELECT * FROM travel_records WHERE user_id = ? AND date_created >= ?', (user_id, (datetime.now() - timedelta(days=30)).strftime('%Y-%m-%d'))).fetchall()
+        records = conn.execute('SELECT * FROM travel_records WHERE user_id = ?', (user_id,)).fetchall()
         conn.close()
         return render_template('user.html', user=user, records=records)
-    else:
-        return redirect(url_for('login'))
-
-@app.route('/start_trip/<int:user_id>')
-def start_trip(user_id):
-    if 'user' in session and session['user'] == user_id:
-        conn = sqlite3.connect('database.db')
-        user = conn.execute('SELECT * FROM users WHERE id = ?', (user_id,)).fetchone()
-        conn.close()
-        return render_template('start_trip.html', user=user)
-    else:
-        return redirect(url_for('login'))
-
-@app.route('/add_record/<int:user_id>', methods=['POST'])
-def add_record(user_id):
-    if 'user' in session and session['user'] == user_id:
-        invoice_number = request.form['invoice_number']
-        destination = request.form['destination']
-        reason = request.form['reason']
-        observation = request.form['observation']
-        value = request.form['value']
-        date_created = datetime.now().strftime('%Y-%m-%d')
-        conn = sqlite3.connect('database.db')
-        conn.execute('INSERT INTO travel_records (user_id, invoice_number, destination, reason, observation, value, date_created) VALUES (?, ?, ?, ?, ?, ?, ?)', 
-                     (user_id, invoice_number, destination, reason, observation, value, date_created))
-        conn.commit()
-        conn.close()
-        return redirect(url_for('start_trip', user_id=user_id))
-    else:
-        return redirect(url_for('login'))
-
-@app.route('/end_trip/<int:user_id>', methods=['POST'])
-def end_trip(user_id):
-    if 'user' in session and session['user'] == user_id:
-        conn = sqlite3.connect('database.db')
-        records = conn.execute('SELECT * FROM travel_records WHERE user_id = ?', (user_id,)).fetchall()
-        total_value = sum(record[6] for record in records)
-        conn.execute('DELETE FROM travel_records WHERE user_id = ?', (user_id,))
-        conn.commit()
-        conn.close()
-        return render_template('report.html', records=records, total_value=total_value)
     else:
         return redirect(url_for('login'))
 
@@ -148,6 +112,21 @@ def upload_photo(user_id):
     else:
         return redirect(url_for('login'))
 
+@app.route('/add_record/<int:user_id>', methods=['POST'])
+def add_record(user_id):
+    if 'user' in session and session['user'] == user_id:
+        reason = request.form['reason']
+        observation = request.form['observation']
+        value = request.form['value']
+        conn = sqlite3.connect('database.db')
+        travel_id = conn.execute('SELECT id FROM travels WHERE user_id = ? AND end_date IS NULL', (user_id,)).fetchone()[0]
+        conn.execute('INSERT INTO travel_records (user_id, reason, observation, value, travel_id) VALUES (?, ?, ?, ?, ?)', (user_id, reason, observation, value, travel_id))
+        conn.commit()
+        conn.close()
+        return redirect(url_for('user', user_id=user_id))
+    else:
+        return redirect(url_for('login'))
+
 @app.route('/add_user', methods=['POST'])
 def add_user():
     if 'user' in session and session['user'] == 'admin':
@@ -157,12 +136,11 @@ def add_user():
         age = request.form['age']
         birthdate = request.form['birthdate']
         
-        # Verificação dos campos obrigatórios
         if not name or not login or not password or not age or not birthdate:
             return redirect(url_for('admin', error='Todos os campos são obrigatórios'))
 
         hashed_password = generate_password_hash(password)
-        profile_pic = 'default_user.png'  # Default profile picture
+        profile_pic = 'default_user.png'
 
         try:
             conn = sqlite3.connect('database.db')
@@ -174,6 +152,31 @@ def add_user():
             return redirect(url_for('admin', error='Login já existe'))
         
         return redirect(url_for('admin'))
+    else:
+        return redirect(url_for('login'))
+
+@app.route('/start_travel/<int:user_id>', methods=['POST'])
+def start_travel(user_id):
+    if 'user' in session and session['user'] == user_id:
+        conn = sqlite3.connect('database.db')
+        conn.execute('INSERT INTO travels (user_id, start_date) VALUES (?, datetime("now"))', (user_id,))
+        conn.commit()
+        conn.close()
+        return redirect(url_for('user', user_id=user_id))
+    else:
+        return redirect(url_for('login'))
+
+@app.route('/end_record/<int:user_id>', methods=['POST'])
+def end_record(user_id):
+    if 'user' in session and session['user'] == user_id:
+        conn = sqlite3.connect('database.db')
+        travel_id = conn.execute('SELECT id FROM travels WHERE user_id = ? AND end_date IS NULL', (user_id,)).fetchone()[0]
+        records = conn.execute('SELECT * FROM travel_records WHERE travel_id = ?', (travel_id,)).fetchall()
+        total_value = sum(record[4] for record in records)
+        conn.execute('UPDATE travels SET end_date = datetime("now") WHERE id = ?', (travel_id,))
+        conn.commit()
+        conn.close()
+        return render_template('report.html', records=records, total_value=total_value)
     else:
         return redirect(url_for('login'))
 
