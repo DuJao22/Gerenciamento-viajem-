@@ -37,13 +37,6 @@
         .sidebar.expanded {
             left: 0;
         }
-        .sidebar img {
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            display: block;
-            margin: 0 auto;
-        }
         .sidebar h1 {
             text-align: center;
         }
@@ -110,16 +103,11 @@
         <button onclick="toggleSidebar()">☰ Menu</button>
     </div>
     <div class="sidebar" id="sidebar">
-        <img src="{{ url_for('static', filename='profile_pics/' + str(user[4]) if user[4] else 'default_user.png') }}" alt="Foto de Perfil">
         <h1>{{ user[1] }}</h1>
-        <h5>Data de Nascimento: {{ user[5] }}</h5>
+        <h5>Idade: {{ user[4] }}</h5>
         <hr>
         <form action="/edit_profile/{{ user[0] }}" method="post">
             <button type="submit">Configurar Perfil</button>
-        </form>
-        <form action="/upload_photo/{{ user[0] }}" method="post" enctype="multipart/form-data">
-            <input type="file" name="profile_pic">
-            <button type="submit">Enviar Foto</button>
         </form>
     </div>
     <div class="main">
@@ -159,4 +147,4 @@
         }
     </script>
 </body>
-    </html>
+</html>
