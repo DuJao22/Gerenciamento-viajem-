@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Iniciar Viagem</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: #222;
+            color: #fff;
+        }
+        .main {
+            margin: 20px;
+            padding: 20px;
+            background: #333;
+            border-radius: 8px;
+        }
+        input[type="text"], input[type="number"] {
+            display: block;
+            width: calc(100% - 20px);
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #555;
+            border-radius: 4px;
+            background: #444;
+            color: #fff;
+        }
+        button.register, button.end {
+            background: #ff6f61;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            color: #fff;
+            font-size: 16px;
+            display: block;
+            margin: 20px auto;
+            border-radius: 4px;
+        }
+        footer {
+            text-align: center;
+            padding: 10px;
+            background: #333;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="main">
+        <h2>Iniciar Viagem</h2>
+        <form action="/add_record/{{ user[0] }}" method="post">
+            <input type="text" name="invoice_number" placeholder="Número da Nota">
+            <input type="text" name="destination" placeholder="Destino">
+            <input type="text" name="reason" placeholder="Motivo">
+            <input type="text" name="observation" placeholder="Observação">
+            <input type="number" step="0.01" name="value" placeholder="Valor">
+            <button type="submit" class="register">Registrar</button>
+        </form>
+        <form action="/end_trip/{{ user[0] }}" method="post">
+            <button type="submit" class="end">Finalizar Viagem</button>
+        </form>
+    </div>
+    <footer>
+        Créditos para João Layon
+    </footer>
+</body>
+</html>
