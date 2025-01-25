@@ -83,8 +83,17 @@ def dashboard():
         user_id = session['user_id']
         conn = sqlite3.connect('database.db')
         user = conn.execute('SELECT * FROM usuarios WHERE id = ?', (user_id,)).fetchone()
-        conn.close()
-        return render_template('dashboard.html', user=user)
+        
+        # Check for an ongoing trip
+        viagem = conn.execute('SELECT * FROM viagens WHERE usuario_id = ? AND finalizada = 0', (user_id,)).fetchone()
+        
+        if viagem:
+            gastos = conn.execute('SELECT * FROM gastos WHERE viagem_id = ?', (viagem[0],)).fetchall()
+            conn.close()
+            return render_template('dashboard.html', user=user, viagem=viagem, gastos=gastos)
+        else:
+            conn.close()
+            return render_template('dashboard.html', user=user, viagem=None)
     else:
         return redirect(url_for('login'))
 
@@ -100,8 +109,19 @@ def inicio_viagem():
             conn.execute('INSERT INTO viagens (usuario_id, numero_nota, destino, data_inicio, finalizada) VALUES (?, ?, ?, ?, ?)', (user_id, numero_nota, destino, data_inicio, False))
             conn.commit()
             conn.close()
-            return redirect(url_for('viagem', numero_nota=numero_nota))
+            return redirect(url_for('dashboard'))
         return render_template('inicio_viagem.html')
+    else:
+        return redirect(url_for('login'))
+
+@app.route('/finalizar_viagem/<int:viagem_id>', methods=['POST'])
+def finalizar_viagem(viagem_id):
+    if 'user_id' in session:
+        conn = sqlite3.connect('database.db')
+        conn.execute('UPDATE viagens SET finalizada = 1 WHERE id = ?', (viagem_id,))
+        conn.commit()
+        conn.close()
+        return redirect(url_for('dashboard'))
     else:
         return redirect(url_for('login'))
 
