@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Administração</title>
+</head>
+<body>
+    <h1>Administração</h1>
+    <ul>
+        {% for user in users %}
+        <li>{{ user[1] }} ({{ user[2] }} anos) - <a href="/user/{{ user[0] }}">Ver Perfil</a></li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
