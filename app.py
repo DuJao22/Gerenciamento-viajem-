@@ -1,4 +1,5 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+)
+    app.run(debug=True)from flask import Flask, render_template, request, redirect, url_for, session, flash
 import sqlite3
 from datetime import datetime
 
@@ -77,7 +78,7 @@ def admin():
     else:
         return redirect(url_for('login'))
 
-@app.route('/dashboard')
+@app.route('/dashboard', methods=['GET', 'POST'])
 def dashboard():
     if 'user_id' in session:
         user_id = session['user_id']
@@ -86,6 +87,17 @@ def dashboard():
         
         # Check for an ongoing trip
         viagem = conn.execute('SELECT * FROM viagens WHERE usuario_id = ? AND finalizada = 0', (user_id,)).fetchone()
+        
+        if request.method == 'POST':
+            if 'registrar' in request.form:
+                motivo = request.form['motivo']
+                observacao = request.form['observacao']
+                valor = request.form['valor']
+                conn.execute('INSERT INTO gastos (viagem_id, motivo, observacao, valor) VALUES (?, ?, ?, ?)', (viagem[0], motivo, observacao, valor))
+                conn.commit()
+            elif 'finalizar' in request.form:
+                conn.execute('UPDATE viagens SET finalizada = 1 WHERE id = ?', (viagem[0],))
+                conn.commit()
         
         if viagem:
             gastos = conn.execute('SELECT * FROM gastos WHERE viagem_id = ?', (viagem[0],)).fetchall()
@@ -111,40 +123,6 @@ def inicio_viagem():
             conn.close()
             return redirect(url_for('dashboard'))
         return render_template('inicio_viagem.html')
-    else:
-        return redirect(url_for('login'))
-
-@app.route('/finalizar_viagem/<int:viagem_id>', methods=['POST'])
-def finalizar_viagem(viagem_id):
-    if 'user_id' in session:
-        conn = sqlite3.connect('database.db')
-        conn.execute('UPDATE viagens SET finalizada = 1 WHERE id = ?', (viagem_id,))
-        conn.commit()
-        conn.close()
-        return redirect(url_for('dashboard'))
-    else:
-        return redirect(url_for('login'))
-
-@app.route('/viagem/<numero_nota>', methods=['GET', 'POST'])
-def viagem(numero_nota):
-    if 'user_id' in session:
-        user_id = session['user_id']
-        conn = sqlite3.connect('database.db')
-        viagem_id = conn.execute('SELECT id FROM viagens WHERE numero_nota = ? AND usuario_id = ?', (numero_nota, user_id)).fetchone()[0]
-
-        if request.method == 'POST':
-            if 'registrar' in request.form:
-                motivo = request.form['motivo']
-                observacao = request.form['observacao']
-                valor = request.form['valor']
-                conn.execute('INSERT INTO gastos (viagem_id, motivo, observacao, valor) VALUES (?, ?, ?, ?)', (viagem_id, motivo, observacao, valor))
-            elif 'finalizar' in request.form:
-                conn.execute('UPDATE viagens SET finalizada = ? WHERE id = ?', (True, viagem_id))
-            conn.commit()
-
-        gastos = conn.execute('SELECT * FROM gastos WHERE viagem_id = ?', (viagem_id,)).fetchall()
-        conn.close()
-        return render_template('viagem.html', numero_nota=numero_nota, gastos=gastos)
     else:
         return redirect(url_for('login'))
 
