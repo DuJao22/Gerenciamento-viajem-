@@ -99,6 +99,21 @@ def add_record(user_id):
     else:
         return redirect(url_for('login'))
 
+@app.route('/add_user', methods=['POST'])
+def add_user():
+    if 'user' in session and session['user'] == 'admin':
+        name = request.form['name']
+        age = request.form['age']
+        birthdate = request.form['birthdate']
+        profile_pic = 'default_user.png'  # Default profile picture
+        conn = sqlite3.connect('database.db')
+        conn.execute('INSERT INTO users (name, age, birthdate, profile_pic) VALUES (?, ?, ?, ?)', (name, age, birthdate, profile_pic))
+        conn.commit()
+        conn.close()
+        return redirect(url_for('admin'))
+    else:
+        return redirect(url_for('login'))
+
 if __name__ == '__main__':
     init_db()
     app.run(debug=True)
