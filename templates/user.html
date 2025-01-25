@@ -110,9 +110,9 @@
         <button onclick="toggleSidebar()">☰ Menu</button>
     </div>
     <div class="sidebar" id="sidebar">
-        <img src="{{ url_for('static', filename='profile_pics/' + user[4] if user[4] else 'default_user.png') }}" alt="Foto de Perfil">
+        <img src="{{ url_for('static', filename='profile_pics/' + str(user[4]) if user[4] else 'default_user.png') }}" alt="Foto de Perfil">
         <h1>{{ user[1] }}</h1>
-        <h5>Data de Nascimento: {{ user[3] }}</h5>
+        <h5>Data de Nascimento: {{ user[5] }}</h5>
         <hr>
         <form action="/edit_profile/{{ user[0] }}" method="post">
             <button type="submit">Configurar Perfil</button>
@@ -159,4 +159,4 @@
         }
     </script>
 </body>
-</html>
+    </html>
