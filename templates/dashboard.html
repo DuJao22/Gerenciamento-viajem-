@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+        }
+        .sidebar {
+            width: 200px;
+            padding: 10px;
+            background-color: #333;
+            color: #fff;
+        }
+        .content {
+            flex: 1;
+            padding: 20px;
+        }
+        h1 {
+            font-size: 24px;
+        }
+        button {
+            padding: 10px;
+            margin: 5px 0;
+            background: #ff6f61;
+            border: none;
+            color: #fff;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h1>{{ user[1] }}</h1>
+        <p>Idade: {{ user[2] }}</p>
+        <p>Data de Nascimento: {{ user[3] }}</p>
+        <button onclick="window.location.href='/inicio_viagem'">Iniciar Nova Viagem</button>
+        <button onclick="window.location.href='/registrar'">Registrar Gastos</button>
+        <button onclick="window.location.href='/finalizar'">Finalizar Viagem</button>
+    </div>
+    <div class="content">
+        <h2>Bem-vindo ao seu Dashboard!</h2>
+    </div>
+</body>
+</html>
