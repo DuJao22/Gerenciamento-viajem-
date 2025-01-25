@@ -62,6 +62,17 @@ def admin():
     else:
         return redirect(url_for('login'))
 
+@app.route('/end_record/<int:user_id>/<int:record_id>', methods=['POST'])
+def end_record(user_id, record_id):
+    if 'user' in session and session['user'] == user_id:
+        conn = sqlite3.connect('database.db')
+        conn.execute('DELETE FROM travel_records WHERE id = ? AND user_id = ?', (record_id, user_id))
+        conn.commit()
+        conn.close()
+        return redirect(url_for('user', user_id=user_id))
+    else:
+        return redirect(url_for('login'))
+
 @app.route('/user/<int:user_id>')
 def user(user_id):
     if 'user' in session and session['user'] == user_id:
