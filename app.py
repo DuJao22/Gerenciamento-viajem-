@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, session
 import sqlite3
 import os
+from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
 app.secret_key = 'super_secret_key'
@@ -8,8 +9,26 @@ app.config['UPLOAD_FOLDER'] = 'static/profile_pics/'
 
 def init_db():
     conn = sqlite3.connect('database.db')
-    conn.execute('CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY, name TEXT, age INTEGER, birthdate TEXT, profile_pic TEXT)')
-    conn.execute('CREATE TABLE IF NOT EXISTS travel_records (id INTEGER PRIMARY KEY, user_id INTEGER, reason TEXT, observation TEXT, value REAL)')
+    conn.execute('''
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY,
+            name TEXT,
+            login TEXT UNIQUE,
+            password TEXT,
+            age INTEGER,
+            birthdate TEXT,
+            profile_pic TEXT
+        )
+    ''')
+    conn.execute('''
+        CREATE TABLE IF NOT EXISTS travel_records (
+            id INTEGER PRIMARY KEY,
+            user_id INTEGER,
+            reason TEXT,
+            observation TEXT,
+            value REAL
+        )
+    ''')
     conn.close()
 
 @app.route('/')
@@ -18,25 +37,23 @@ def login():
 
 @app.route('/login', methods=['POST'])
 def do_login():
-    username = request.form['username']
+    login = request.form['login']
     password = request.form['password']
-    if username == 'DUJAO22' and password == '20E10':
-        session['user'] = 'admin'
-        return redirect(url_for('admin'))
-    else:
-        # Check if the user exists in the database
-        conn = sqlite3.connect('database.db')
-        user = conn.execute('SELECT * FROM users WHERE name = ?', (username,)).fetchone()
-        conn.close()
-        if user:
-            session['user'] = user[0]
-            return redirect(url_for('user', user_id=user[0]))
+    conn = sqlite3.connect('database.db')
+    user = conn.execute('SELECT * FROM users WHERE login = ?', (login,)).fetchone()
+    conn.close()
+    if user and check_password_hash(user[3], password):
+        session['user'] = user[0]
+        if user[1] == 'DUJAO22':
+            return redirect(url_for('admin'))
         else:
-            return redirect(url_for('login'))
+            return redirect(url_for('user', user_id=user[0]))
+    else:
+        return redirect(url_for('login'))
 
 @app.route('/admin')
 def admin():
-    if 'user' in session and session['user'] == 'admin':
+    if 'user' in session and session['user'] == 1:
         conn = sqlite3.connect('database.db')
         users = conn.execute('SELECT * FROM users').fetchall()
         conn.close()
@@ -101,13 +118,15 @@ def add_record(user_id):
 
 @app.route('/add_user', methods=['POST'])
 def add_user():
-    if 'user' in session and session['user'] == 'admin':
+    if 'user' in session and session['user'] == 1:
         name = request.form['name']
+        login = request.form['login']
+        password = generate_password_hash(request.form['password'])
         age = request.form['age']
         birthdate = request.form['birthdate']
         profile_pic = 'default_user.png'  # Default profile picture
         conn = sqlite3.connect('database.db')
-        conn.execute('INSERT INTO users (name, age, birthdate, profile_pic) VALUES (?, ?, ?, ?)', (name, age, birthdate, profile_pic))
+        conn.execute('INSERT INTO users (name, login, password, age, birthdate, profile_pic) VALUES (?, ?, ?, ?, ?, ?)', (name, login, password, age, birthdate, profile_pic))
         conn.commit()
         conn.close()
         return redirect(url_for('admin'))
