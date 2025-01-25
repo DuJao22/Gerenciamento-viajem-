@@ -122,14 +122,26 @@ def add_user():
     if 'user' in session and session['user'] == 'admin':
         name = request.form['name']
         login = request.form['login']
-        password = generate_password_hash(request.form['password'])
+        password = request.form['password']
         age = request.form['age']
         birthdate = request.form['birthdate']
+        
+        # Verificação dos campos obrigatórios
+        if not name or not login or not password or not age or not birthdate:
+            return redirect(url_for('admin', error='Todos os campos são obrigatórios'))
+
+        hashed_password = generate_password_hash(password)
         profile_pic = 'default_user.png'  # Default profile picture
-        conn = sqlite3.connect('database.db')
-        conn.execute('INSERT INTO users (name, login, password, age, birthdate, profile_pic) VALUES (?, ?, ?, ?, ?, ?)', (name, login, password, age, birthdate, profile_pic))
-        conn.commit()
-        conn.close()
+
+        try:
+            conn = sqlite3.connect('database.db')
+            conn.execute('INSERT INTO users (name, login, password, age, birthdate, profile_pic) VALUES (?, ?, ?, ?, ?, ?)', 
+                         (name, login, hashed_password, age, birthdate, profile_pic))
+            conn.commit()
+            conn.close()
+        except sqlite3.IntegrityError:
+            return redirect(url_for('admin', error='Login já existe'))
+        
         return redirect(url_for('admin'))
     else:
         return redirect(url_for('login'))
