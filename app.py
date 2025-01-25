@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 import sqlite3
 import os
+import time
 from werkzeug.security import generate_password_hash, check_password_hash
 
 app = Flask(__name__)
@@ -26,16 +27,7 @@ def init_db():
             user_id INTEGER,
             reason TEXT,
             observation TEXT,
-            value REAL,
-            travel_id INTEGER
-        )
-    ''')
-    conn.execute('''
-        CREATE TABLE IF NOT EXISTS travels (
-            id INTEGER PRIMARY KEY,
-            user_id INTEGER,
-            start_date TEXT,
-            end_date TEXT
+            value REAL
         )
     ''')
     conn.close()
@@ -118,11 +110,30 @@ def add_record(user_id):
         reason = request.form['reason']
         observation = request.form['observation']
         value = request.form['value']
-        conn = sqlite3.connect('database.db')
-        travel_id = conn.execute('SELECT id FROM travels WHERE user_id = ? AND end_date IS NULL', (user_id,)).fetchone()[0]
-        conn.execute('INSERT INTO travel_records (user_id, reason, observation, value, travel_id) VALUES (?, ?, ?, ?, ?)', (user_id, reason, observation, value, travel_id))
+        
+        # Create a new database for the travel record
+        db_name = f'travel_record_{user_id}_{int(time.time())}.db'
+        conn = sqlite3.connect(db_name)
+        conn.execute('''
+            CREATE TABLE IF NOT EXISTS travel_record (
+                id INTEGER PRIMARY KEY,
+                user_id INTEGER,
+                reason TEXT,
+                observation TEXT,
+                value REAL,
+                name TEXT,
+                login TEXT,
+                age INTEGER,
+                birthdate TEXT,
+                profile_pic TEXT
+            )
+        ''')
+        user = conn.execute('SELECT * FROM users WHERE id = ?', (user_id,)).fetchone()
+        conn.execute('INSERT INTO travel_record (user_id, reason, observation, value, name, login, age, birthdate, profile_pic) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)', 
+                     (user_id, reason, observation, value, user[1], user[2], user[4], user[5], user[6]))
         conn.commit()
         conn.close()
+        
         return redirect(url_for('user', user_id=user_id))
     else:
         return redirect(url_for('login'))
@@ -136,11 +147,12 @@ def add_user():
         age = request.form['age']
         birthdate = request.form['birthdate']
         
+        # Verificação dos campos obrigatórios
         if not name or not login or not password or not age or not birthdate:
             return redirect(url_for('admin', error='Todos os campos são obrigatórios'))
 
         hashed_password = generate_password_hash(password)
-        profile_pic = 'default_user.png'
+        profile_pic = 'default_user.png'  # Default profile picture
 
         try:
             conn = sqlite3.connect('database.db')
@@ -155,25 +167,13 @@ def add_user():
     else:
         return redirect(url_for('login'))
 
-@app.route('/start_travel/<int:user_id>', methods=['POST'])
-def start_travel(user_id):
-    if 'user' in session and session['user'] == user_id:
-        conn = sqlite3.connect('database.db')
-        conn.execute('INSERT INTO travels (user_id, start_date) VALUES (?, datetime("now"))', (user_id,))
-        conn.commit()
-        conn.close()
-        return redirect(url_for('user', user_id=user_id))
-    else:
-        return redirect(url_for('login'))
-
 @app.route('/end_record/<int:user_id>', methods=['POST'])
 def end_record(user_id):
     if 'user' in session and session['user'] == user_id:
         conn = sqlite3.connect('database.db')
-        travel_id = conn.execute('SELECT id FROM travels WHERE user_id = ? AND end_date IS NULL', (user_id,)).fetchone()[0]
-        records = conn.execute('SELECT * FROM travel_records WHERE travel_id = ?', (travel_id,)).fetchall()
+        records = conn.execute('SELECT * FROM travel_records WHERE user_id = ?', (user_id,)).fetchall()
         total_value = sum(record[4] for record in records)
-        conn.execute('UPDATE travels SET end_date = datetime("now") WHERE id = ?', (travel_id,))
+        conn.execute('DELETE FROM travel_records WHERE user_id = ?', (user_id,))
         conn.commit()
         conn.close()
         return render_template('report.html', records=records, total_value=total_value)
