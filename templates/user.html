@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Perfil do Usuário</title>
+</head>
+<body>
+    <div class="sidebar">
+        <img src="{{ url_for('static', filename='profile_pics/' + user[4] if user[4] else 'default_user.png') }}" alt="Foto de Perfil">
+        <h1>{{ user[1] }}</h1>
+        <p>Idade: {{ user[2] }}</p>
+        <p>Data de Nascimento: {{ user[3] }}</p>
+        <form action="/edit_profile/{{ user[0] }}" method="post">
+            <button type="submit">Editar Perfil</button>
+        </form>
+        <form action="/upload_photo/{{ user[0] }}" method="post" enctype="multipart/form-data">
+            <input type="file" name="profile_pic">
+            <button type="submit">Enviar Foto</button>
+        </form>
+    </div>
+    <div class="main">
+        <h2>Registros de Viagem</h2>
+        <table>
+            <tr>
+                <th>Motivo</th>
+                <th>Observação</th>
+                <th>Valor</th>
+            </tr>
+            {% for record in records %}
+            <tr>
+                <td>{{ record[2] }}</td>
+                <td>{{ record[3] }}</td>
+                <td>{{ record[4] }}</td>
+            </tr>
+            {% endfor %}
+        </table>
+        <form action="/add_record/{{ user[0] }}" method="post">
+            <input type="text" name="reason" placeholder="Motivo">
+            <input type="text" name="observation" placeholder="Observação">
+            <input type="number" step="0.01" name="value" placeholder="Valor">
+            <button type="submit">Adicionar Registro</button>
+        </form>
+    </div>
+</body>
+</html>
