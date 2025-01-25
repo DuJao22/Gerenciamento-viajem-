@@ -52,6 +52,7 @@
             <th>Nome</th>
             <th>Idade</th>
             <th>Data de Nascimento</th>
+            <th>Login</th>
         </tr>
         {% for user in usuarios %}
         <tr>
@@ -59,6 +60,7 @@
             <td>{{ user[1] }}</td>
             <td>{{ user[2] }}</td>
             <td>{{ user[3] }}</td>
+            <td>{{ user[4] }}</td>
         </tr>
         {% endfor %}
     </table>
@@ -66,6 +68,8 @@
         <input type="text" name="nome" placeholder="Nome" required>
         <input type="number" name="idade" placeholder="Idade" required>
         <input type="date" name="data_nascimento" placeholder="Data de Nascimento" required>
+        <input type="text" name="login" placeholder="Login" required>
+        <input type="password" name="senha" placeholder="Senha" required>
         <button type="submit">Adicionar Usuário</button>
     </form>
 </body>
