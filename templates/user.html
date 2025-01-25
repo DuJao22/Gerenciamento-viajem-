@@ -1,9 +1,8 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Perfil do Usuário</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -82,7 +81,7 @@
         th {
             background: #555;
         }
-        button.register, button.end, button.start {
+        button.register, button.end {
             background: #ff6f61;
             border: none;
             padding: 10px 20px;
@@ -133,7 +132,7 @@
                 background: none;
                 font-weight: bold;
             }
-            button.register, button.end, button.start {
+            button.register, button.end {
                 width: 100%;
             }
         }
@@ -149,9 +148,6 @@
         <hr>
         <form action="/edit_profile/{{ user[0] }}" method="post">
             <button type="submit">Configurar Perfil</button>
-        </form>
-        <form action="/start_travel/{{ user[0] }}" method="post">
-            <button type="submit" class="start">Iniciar Viagem</button>
         </form>
     </div>
     <div class="main">
