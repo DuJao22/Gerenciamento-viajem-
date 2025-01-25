@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Iniciar Viagem</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #222;
+            color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .viagem-form {
+            background: #333;
+            padding: 20px;
+            border-radius: 5px;
+        }
+        .viagem-form h1 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .viagem-form input, .viagem-form button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: none;
+            border-radius: 5px;
+        }
+        .viagem-form button {
+            background: #ff6f61;
+            color: #fff;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="viagem-form">
+        <h1>Iniciar Nova Viagem</h1>
+        <form method="POST" action="/inicio_viagem">
+            <input type="text" name="numero_nota" placeholder="Número da Nota" required>
+            <input type="text" name="destino" placeholder="Destino">
+            <button type="submit">Iniciar Viagem</button>
+        </form>
+    </div>
+</body>
+</html>
