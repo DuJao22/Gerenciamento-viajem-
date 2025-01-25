@@ -6,9 +6,15 @@
         body {
             font-family: Arial, sans-serif;
             display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #121212;
+            color: #fff;
         }
         .sidebar {
-            width: 200px;
+            width: 100%;
+            max-width: 200px;
             padding: 10px;
             background-color: #333;
             color: #fff;
@@ -16,6 +22,7 @@
         .content {
             flex: 1;
             padding: 20px;
+            background-color: #1e1e1e;
         }
         h1 {
             font-size: 24px;
@@ -28,6 +35,7 @@
             color: #fff;
             cursor: pointer;
             border-radius: 5px;
+            width: 100%;
         }
         table {
             width: 100%;
@@ -53,6 +61,18 @@
             border: none;
             border-radius: 5px;
             width: calc(100% - 22px); /* Adjust for padding and border */
+            background: #333;
+            color: #fff;
+        }
+        @media (min-width: 600px) {
+            body {
+                flex-direction: row;
+            }
+            .sidebar {
+                height: 100vh;
+                position: sticky;
+                top: 0;
+            }
         }
     </style>
 </head>
@@ -82,14 +102,14 @@
             </tr>
             {% endfor %}
         </table>
-        <form method="POST" action="/viagem/{{ viagem[2] }}">
+        <form method="POST" action="/dashboard">
             <input type="text" name="motivo" placeholder="Motivo" required>
             <input type="text" name="observacao" placeholder="Observação">
             <input type="number" step="0.01" name="valor" placeholder="Valor" required>
             <button type="submit" name="registrar">Registrar Gasto</button>
         </form>
-        <form method="POST" action="/finalizar_viagem/{{ viagem[0] }}">
-            <button type="submit">Finalizar Viagem</button>
+        <form method="POST" action="/dashboard">
+            <button type="submit" name="finalizar">Finalizar Viagem</button>
         </form>
         {% else %}
         <h2>Bem-vindo ao seu Dashboard!</h2>
