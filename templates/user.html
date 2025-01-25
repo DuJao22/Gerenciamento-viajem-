@@ -59,7 +59,7 @@
             margin-bottom: 10px;
         }
         .main {
-            margin-left: 20px;
+            margin-left: 270px;
             padding: 20px;
         }
         table {
@@ -77,7 +77,7 @@
         th {
             background: #555;
         }
-        button.register {
+        button.register, button.end {
             background: #ff6f61;
             border: none;
             padding: 10px 20px;
@@ -95,6 +95,42 @@
             bottom: 0;
             left: 0;
             width: 100%;
+        }
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+                left: 0;
+            }
+            .sidebar.expanded {
+                left: 0;
+            }
+            .main {
+                margin-left: 0;
+                padding: 10px;
+            }
+            .top-menu {
+                text-align: center;
+            }
+            table, th, td {
+                display: block;
+                width: 100%;
+            }
+            th, td {
+                text-align: right;
+                display: block;
+                border: none;
+                padding: 10px;
+                border-bottom: 1px solid #555;
+            }
+            th {
+                background: none;
+                font-weight: bold;
+            }
+            button.register, button.end {
+                width: 100%;
+            }
         }
     </style>
 </head>
@@ -117,12 +153,18 @@
                 <th>Motivo</th>
                 <th>Observação</th>
                 <th>Valor</th>
+                <th>Ação</th>
             </tr>
             {% for record in records %}
             <tr>
                 <td>{{ record[2] }}</td>
                 <td>{{ record[3] }}</td>
                 <td>{{ record[4] }}</td>
+                <td>
+                    <form action="/end_record/{{ user[0] }}/{{ record[0] }}" method="post" style="display:inline;">
+                        <button type="submit" class="end">Finalizar</button>
+                    </form>
+                </td>
             </tr>
             {% endfor %}
         </table>
