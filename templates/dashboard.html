@@ -29,6 +29,31 @@
             cursor: pointer;
             border-radius: 5px;
         }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        table, th, td {
+            border: 1px solid #555;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        th {
+            background: #333;
+        }
+        form {
+            margin-top: 20px;
+        }
+        input {
+            padding: 10px;
+            margin: 5px 0;
+            border: none;
+            border-radius: 5px;
+            width: calc(100% - 22px); /* Adjust for padding and border */
+        }
     </style>
 </head>
 <body>
@@ -36,7 +61,9 @@
         <h1>{{ user[1] }}</h1>
         <p>Idade: {{ user[2] }}</p>
         <p>Data de Nascimento: {{ user[3] }}</p>
+        {% if not viagem %}
         <button onclick="window.location.href='/inicio_viagem'">Iniciar Nova Viagem</button>
+        {% endif %}
     </div>
     <div class="content">
         {% if viagem %}
@@ -67,7 +94,6 @@
         {% else %}
         <h2>Bem-vindo ao seu Dashboard!</h2>
         <p>Atualmente, você não possui viagens em andamento.</p>
-        <button onclick="window.location.href='/inicio_viagem'">Iniciar Nova Viagem</button>
         {% endif %}
     </div>
 </body>
