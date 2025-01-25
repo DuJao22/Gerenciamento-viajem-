@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for, session, flash
 import sqlite3
 import os
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -59,17 +59,6 @@ def admin():
         users = conn.execute('SELECT * FROM users').fetchall()
         conn.close()
         return render_template('admin.html', users=users)
-    else:
-        return redirect(url_for('login'))
-
-@app.route('/end_record/<int:user_id>/<int:record_id>', methods=['POST'])
-def end_record(user_id, record_id):
-    if 'user' in session and session['user'] == user_id:
-        conn = sqlite3.connect('database.db')
-        conn.execute('DELETE FROM travel_records WHERE id = ? AND user_id = ?', (record_id, user_id))
-        conn.commit()
-        conn.close()
-        return redirect(url_for('user', user_id=user_id))
     else:
         return redirect(url_for('login'))
 
@@ -154,6 +143,20 @@ def add_user():
             return redirect(url_for('admin', error='Login já existe'))
         
         return redirect(url_for('admin'))
+    else:
+        return redirect(url_for('login'))
+
+@app.route('/end_record/<int:user_id>', methods=['POST'])
+def end_record(user_id):
+    if 'user' in session and session['user'] == user_id:
+        conn = sqlite3.connect('database.db')
+        records = conn.execute('SELECT * FROM travel_records WHERE user_id = ?', (user_id,)).fetchall()
+        total_value = sum(record[4] for record in records)
+        conn.execute('DELETE FROM travel_records WHERE user_id = ?', (user_id,))
+        conn.commit()
+        conn.close()
+        flash(f'Total gasto na viagem: {total_value:.2f}')
+        return redirect(url_for('user', user_id=user_id))
     else:
         return redirect(url_for('login'))
 
