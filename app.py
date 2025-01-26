@@ -136,6 +136,12 @@ def finalizar_viagem(viagem_id):
     else:
         return redirect(url_for('login'))
 
+@app.route('/logout')
+def logout():
+    session.pop('user', None)
+    session.pop('user_id', None)
+    return redirect(url_for('login'))
+
 if __name__ == '__main__':
     init_db()
     app.run(debug=True)
