@@ -111,10 +111,11 @@
         <form method="POST" action="/finalizar_viagem/{{ viagem[0] }}">
             <button type="submit" name="finalizar">Finalizar Viagem</button>
         </form>
+        <a href="{{ url_for('download_report', viagem_id=viagem[0]) }}" style="display: {% if viagem[5] %}block{% else %}none{% endif %};">Download Relatório</a>
         {% else %}
         <h2>Bem-vindo ao seu Dashboard!</h2>
         <p>Atualmente, você não possui viagens em andamento.</p>
         {% endif %}
     </div>
 </body>
-</html>
+                             </html>
