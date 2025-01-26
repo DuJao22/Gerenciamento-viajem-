@@ -1,6 +1,7 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, session, flash, send_file
 import sqlite3
 from datetime import datetime
+import os
 
 app = Flask(__name__)
 app.secret_key = 'super_secret_key'
@@ -39,6 +40,47 @@ def init_db():
         )
     ''')
     conn.close()
+
+def generate_report(viagem_id):
+    conn = sqlite3.connect('database.db')
+    viagem = conn.execute('SELECT * FROM viagens WHERE id = ?', (viagem_id,)).fetchone()
+    gastos = conn.execute('SELECT * FROM gastos WHERE viagem_id = ?', (viagem_id,)).fetchall()
+    user = conn.execute('SELECT * FROM usuarios WHERE id = ?', (viagem[1],)).fetchone()
+    conn.close()
+
+    total_gastos = sum(gasto[4] for gasto in gastos)
+
+    report_content = f"""
+    Relatório de Viagem
+    ===================
+    Usuário: {user[1]}
+    Idade: {user[2]}
+    Data de Nascimento: {user[3]}
+    
+    Viagem
+    ------
+    Nota: {viagem[2]}
+    Destino: {viagem[3]}
+    Data de Início: {viagem[4]}
+    Finalizada: {viagem[5]}
+    
+    Gastos
+    ------
+    """
+    for gasto in gastos:
+        report_content += f"""
+        Motivo: {gasto[2]}
+        Observação: {gasto[3]}
+        Valor: {gasto[4]}
+        """
+
+    report_content += f"\nTotal dos Gastos: {total_gastos}\n"
+
+    report_path = f'report_viagem_{viagem_id}.txt'
+    with open(report_path, 'w', encoding='utf-8') as report_file:
+        report_file.write(report_content)
+    
+    return report_path
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -98,6 +140,8 @@ def dashboard():
                 elif 'finalizar' in request.form:
                     conn.execute('UPDATE viagens SET finalizada = 1 WHERE id = ?', (viagem[0],))
                     conn.commit()
+                    report_path = generate_report(viagem[0])
+                    return redirect(url_for('download_report', viagem_id=viagem[0]))
 
             gastos = conn.execute('SELECT * FROM gastos WHERE viagem_id = ?', (viagem[0],)).fetchall()
             conn.close()
@@ -132,9 +176,19 @@ def finalizar_viagem(viagem_id):
         conn.execute('UPDATE viagens SET finalizada = 1 WHERE id = ?', (viagem_id,))
         conn.commit()
         conn.close()
-        return redirect(url_for('dashboard'))
+        report_path = generate_report(viagem_id)
+        return redirect(url_for('download_report', viagem_id=viagem_id))
     else:
         return redirect(url_for('login'))
+
+@app.route('/download_report/<int:viagem_id>')
+def download_report(viagem_id):
+    report_path = f'report_viagem_{viagem_id}.txt'
+    if os.path.exists(report_path):
+        return send_file(report_path, as_attachment=True)
+    else:
+        flash('Relatório não encontrado')
+        return redirect(url_for('dashboard'))
 
 @app.route('/logout')
 def logout():
