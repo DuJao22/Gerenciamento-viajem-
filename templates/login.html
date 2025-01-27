@@ -1,53 +1,116 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-br">
 <head>
-    <title>Login</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Gerenciamento de Viagem</title>
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: Arial, sans-serif;
+            font-family: 'Arial', sans-serif;
+            background: #1a1a1a;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background: #222;
             color: #fff;
         }
-        .login-form {
-            background: #333;
-            padding: 20px;
-            border-radius: 5px;
-        }
-        .login-form h1 {
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
             text-align: center;
-            margin-bottom: 20px;
+            max-width: 400px;
+            width: 100%;
+            padding: 20px;
+            background: #333;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
         }
+
+        h1 {
+            font-size: 36px;
+            margin-bottom: 30px;
+            color: #ff6f61;
+        }
+
+        .login-form {
+            width: 100%;
+        }
+
         .login-form input {
             width: 100%;
-            padding: 10px;
+            padding: 15px;
             margin: 10px 0;
+            border-radius: 8px;
             border: none;
-            border-radius: 5px;
+            background-color: #444;
+            color: white;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
         }
+
+        .login-form input:focus {
+            background-color: #555;
+        }
+
         .login-form button {
             width: 100%;
-            padding: 10px;
-            background: #ff6f61;
+            padding: 15px;
+            background-color: #ff6f61;
+            color: white;
+            border-radius: 8px;
             border: none;
-            border-radius: 5px;
             cursor: pointer;
-            color: #fff;
-            font-size: 16px;
+            font-size: 18px;
+            transition: background-color 0.3s ease;
         }
+
+        .login-form button:hover {
+            background-color: #e65b55;
+        }
+
+        /* Responsividade */
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 28px;
+                margin-bottom: 20px;
+            }
+
+            .container {
+                padding: 15px;
+            }
+
+            .login-form input {
+                font-size: 14px;
+                padding: 12px;
+            }
+
+            .login-form button {
+                font-size: 16px;
+                padding: 12px;
+            }
+        }
+
     </style>
 </head>
 <body>
-    <div class="login-form">
-        <h1>Login</h1>
-        <form method="POST" action="/login">
-            <input type="text" name="login" placeholder="Login" required>
-            <input type="password" name="senha" placeholder="Senha" required>
-            <button type="submit">Login</button>
-        </form>
+    <div class="container">
+        <h1>GERENCIAMENTO DE VIAGEM</h1>
+        <div class="login-form">
+            <form method="POST" action="/login">
+                <input type="text" name="login" placeholder="Login" required>
+                <input type="password" name="senha" placeholder="Senha" required>
+                <button type="submit">Login</button>
+            </form>
+        </div>
     </div>
 </body>
 </html>
