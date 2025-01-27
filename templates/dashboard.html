@@ -1,90 +1,219 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Dashboard</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Moderno</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
+        /* Reset geral */
+        * {
             margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            color: #fff;
             background-color: #121212;
-            color: #fff;
+            display: flex;
+            min-height: 100vh;
+            flex-direction: column;
         }
-        .sidebar {
-            width: 100%;
-            max-width: 200px;
-            padding: 10px;
+
+        /* Cabeçalho */
+        .header {
             background-color: #333;
-            color: #fff;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 20px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
         }
-        .content {
-            flex: 1;
-            padding: 20px;
-            background-color: #1e1e1e;
-        }
-        h1 {
+
+        .header h1 {
             font-size: 24px;
         }
-        button {
-            padding: 10px;
-            margin: 5px 0;
-            background: #ff6f61;
+
+        .menu-btn {
+            background-color: #ff6f61;
             border: none;
-            color: #fff;
-            cursor: pointer;
+            color: white;
+            padding: 10px 15px;
+            font-size: 16px;
             border-radius: 5px;
-            width: 100%;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
         }
+
+        .menu-btn:hover {
+            background-color: #e65b55;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -300px;
+            width: 300px;
+            height: 100vh;
+            background-color: #333;
+            color: white;
+            padding: 20px;
+            transition: left 0.3s ease;
+            box-shadow: 2px 0 5px rgba(0, 0, 0, 0.5);
+        }
+
+        .sidebar.active {
+            left: 0;
+        }
+
+        .sidebar h2 {
+            font-size: 22px;
+            margin-bottom: 10px;
+        }
+
+        .sidebar p {
+            margin: 10px 0;
+            line-height: 1.6;
+        }
+
+        .sidebar button {
+            background-color: #ff6f61;
+            color: white;
+            border: none;
+            padding: 10px 15px;
+            width: 100%;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+            transition: background-color 0.3s ease;
+        }
+
+        .sidebar button:hover {
+            background-color: #e65b55;
+        }
+
+        /* Conteúdo principal */
+        .content {
+            flex: 1;
+            margin-left: 20px;
+            padding: 20px;
+            background-color: #1e1e1e;
+            color: #fff;
+            transition: margin-left 0.3s ease;
+        }
+
+        .content h2 {
+            font-size: 28px;
+            margin-bottom: 15px;
+        }
+
+        .content p {
+            font-size: 16px;
+            line-height: 1.8;
+            margin-bottom: 10px;
+        }
+
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 20px;
+            margin: 20px 0;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
-        table, th, td {
-            border: 1px solid #555;
-        }
+
         th, td {
             padding: 10px;
             text-align: left;
+            border-bottom: 1px solid #555;
         }
+
         th {
-            background: #333;
+            background-color: #333;
+            color: white;
         }
-        form {
-            margin-top: 20px;
-        }
-        input {
+
+        input, button {
             padding: 10px;
-            margin: 5px 0;
-            border: none;
+            border: 1px solid #555;
             border-radius: 5px;
-            width: calc(100% - 22px); /* Adjust for padding and border */
+            margin-top: 10px;
+            width: calc(100% - 22px);
             background: #333;
-            color: #fff;
+            color: white;
         }
-        @media (min-width: 600px) {
-            body {
-                flex-direction: row;
+
+        button {
+            background-color: #ff6f61;
+            color: white;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #e65b55;
+        }
+
+        /* Responsividade */
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 20px;
             }
+
+            .menu-btn {
+                padding: 8px 12px;
+                font-size: 14px;
+            }
+
             .sidebar {
-                height: 100vh;
-                position: sticky;
-                top: 0;
+                width: 250px;
+            }
+
+            .content {
+                padding: 15px;
+            }
+
+            table, th, td {
+                font-size: 14px;
             }
         }
     </style>
+    <script>
+        // Controle do sidebar
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            sidebar.classList.toggle('active');
+        }
+
+        // Função para atualizar a página após o download
+        function refreshAfterDownload() {
+            setTimeout(() => {
+                location.reload();
+            }, 1000); // Atualiza após 2 segundos
+        }
+        
+    </script>
 </head>
 <body>
+    <!-- Cabeçalho -->
+    <div class="header">
+        <h1>Dashboard Moderno</h1>
+        <button class="menu-btn" onclick="toggleSidebar()">Menu</button>
+    </div>
+
+    <!-- Sidebar -->
     <div class="sidebar">
-        <h1>{{ user[1] }}</h1>
+        <h2>Informações do Usuário</h2>
+        <p>Nome: {{ user[1] }}</p>
         <p>Idade: {{ user[2] }}</p>
         <p>Data de Nascimento: {{ user[3] }}</p>
         {% if not viagem %}
         <button onclick="window.location.href='/inicio_viagem'">Iniciar Nova Viagem</button>
         {% endif %}
     </div>
+
+    <!-- Conteúdo Principal -->
     <div class="content">
         {% if viagem %}
         <h2>Detalhes da Viagem - Nota: {{ viagem[2] }}</h2>
@@ -109,13 +238,15 @@
             <button type="submit" name="registrar">Registrar Gasto</button>
         </form>
         <form method="POST" action="/finalizar_viagem/{{ viagem[0] }}">
-            <button type="submit" name="finalizar">Finalizar Viagem</button>
+            <button type="submit" name="finalizar" onclick="refreshAfterDownload()">Finalizar Viagem</button>
         </form>
-        <a href="{{ url_for('download_report', viagem_id=viagem[0]) }}" style="display: {% if viagem[5] %}block{% else %}none{% endif %};">Download Relatório</a>
+        <a href="{{ url_for('download_report', viagem_id=viagem[0]) }}" id="downloadLink" style="display: {% if viagem[5] %}block{% else %}none{% endif %};">Download Relatório</a>
+        
         {% else %}
         <h2>Bem-vindo ao seu Dashboard!</h2>
         <p>Atualmente, você não possui viagens em andamento.</p>
         {% endif %}
     </div>
 </body>
-                             </html>
+    </html>
+    
