@@ -51,28 +51,28 @@ def generate_report(viagem_id):
     total_gastos = sum(gasto[4] for gasto in gastos)
 
     report_content = f"""
-    Relatório de Viagem
-    ===================
-    Usuário: {user[1]}
-    Idade: {user[2]}
-    Data de Nascimento: {user[3]}
-    
-    Viagem
-    ------
-    Nota: {viagem[2]}
-    Destino: {viagem[3]}
-    Data de Início: {viagem[4]}
-    Finalizada: {viagem[5]}
-    
-    Gastos
-    ------
-    """
+Relatorio de Viagem
+===================
+Usuario: {user[1]}
+Idade: {user[2]}
+Data de Nascimento: {user[3]}
+
+Viagem
+------
+Nota: {viagem[2]}
+Destino: {viagem[3]}
+Data de Inicio: {viagem[4]}
+Finalizada: {"Sim" if viagem[5] else "Não"}
+
+Gastos
+------
+"""
     for gasto in gastos:
         report_content += f"""
-        Motivo: {gasto[2]}
-        Observação: {gasto[3]}
-        Valor: {gasto[4]}
-        """
+Motivo: {gasto[2]}
+Observacao: {gasto[3]}
+Valor: {gasto[4]}
+"""
 
     report_content += f"\nTotal dos Gastos: {total_gastos}\n"
 
@@ -185,7 +185,7 @@ def finalizar_viagem(viagem_id):
 def download_report(viagem_id):
     report_path = f'report_viagem_{viagem_id}.txt'
     if os.path.exists(report_path):
-        return send_file(report_path, as_attachment=True)
+        return send_file(report_path, as_attachment=True) 
     else:
         flash('Relatório não encontrado')
         return redirect(url_for('dashboard'))
