@@ -1,37 +1,92 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Iniciar Viagem</title>
     <style>
+        /* Estilo geral */
         body {
-            font-family: Arial, sans-serif;
-            background: #222;
+            font-family: 'Arial', sans-serif;
+            background-color: #222;
             color: #fff;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
+            margin: 0;
         }
+
+        /* Formulário de viagem */
         .viagem-form {
-            background: #333;
-            padding: 20px;
-            border-radius: 5px;
-        }
-        .viagem-form h1 {
+            background-color: #333;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 500px;
             text-align: center;
-            margin-bottom: 20px;
         }
+
+        .viagem-form h1 {
+            font-size: 28px;
+            margin-bottom: 20px;
+            color: #ff6f61;
+            font-weight: bold;
+        }
+
         .viagem-form input, .viagem-form button {
             width: 100%;
-            padding: 10px;
+            padding: 15px;
             margin: 10px 0;
             border: none;
-            border-radius: 5px;
+            border-radius: 8px;
+            font-size: 16px;
+            box-sizing: border-box;
         }
+
+        .viagem-form input {
+            background-color: #444;
+            color: #fff;
+            transition: background-color 0.3s ease;
+        }
+
+        .viagem-form input:focus {
+            background-color: #555;
+            outline: none;
+        }
+
         .viagem-form button {
-            background: #ff6f61;
+            background-color: #ff6f61;
             color: #fff;
             cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.3s ease;
+        }
+
+        .viagem-form button:hover {
+            background-color: #ff8a7d;
+        }
+
+        /* Responsividade */
+        @media (max-width: 768px) {
+            .viagem-form h1 {
+                font-size: 24px;
+            }
+            .viagem-form input, .viagem-form button {
+                font-size: 14px;
+                padding: 12px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .viagem-form h1 {
+                font-size: 20px;
+            }
+            .viagem-form input, .viagem-form button {
+                font-size: 14px;
+                padding: 10px;
+            }
         }
     </style>
 </head>
@@ -40,7 +95,7 @@
         <h1>Iniciar Nova Viagem</h1>
         <form method="POST" action="/inicio_viagem">
             <input type="text" name="numero_nota" placeholder="Número da Nota" required>
-            <input type="text" name="destino" placeholder="Destino">
+            <input type="text" name="destino" placeholder="Destino" required>
             <button type="submit">Iniciar Viagem</button>
         </form>
     </div>
