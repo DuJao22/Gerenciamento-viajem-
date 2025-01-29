@@ -1,16 +1,35 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash, send_file
 import psycopg2
+from psycopg2 import sql
 from datetime import datetime
 import os
 
 app = Flask(__name__)
 app.secret_key = 'super_secret_key'
 
-DATABASE_URL = "postgresql://database_shki_user:m0QsRSe6eUWAj70RuxAUJzmcj2dymZoO@dpg-cud3bjd6l47c7385qecg-a/database_shki"
+DB_HOST = "dpg-cud3bjd6l47c7385qecg-a"
+DB_USER = "database_shki_user"
+DB_PASSWORD = "m0QsRSe6eUWAj70RuxAUJzmcj2dymZoO"
+DB_NAME = "database_shki"
+DATABASE_URL = f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}/{DB_NAME}"
 
-def get_db_connection():
-    conn = psycopg2.connect(DATABASE_URL)
+def get_db_connection(dbname=DB_NAME):
+    conn = psycopg2.connect(
+        dbname=dbname, user=DB_USER, password=DB_PASSWORD, host=DB_HOST
+    )
     return conn
+
+def create_database():
+    conn = psycopg2.connect(
+        dbname="postgres", user=DB_USER, password=DB_PASSWORD, host=DB_HOST
+    )
+    conn.autocommit = True
+    cursor = conn.cursor()
+
+    cursor.execute(sql.SQL("CREATE DATABASE {}").format(sql.Identifier(DB_NAME)))
+
+    cursor.close()
+    conn.close()
 
 def init_db():
     conn = get_db_connection()
@@ -227,5 +246,9 @@ def logout():
     return redirect(url_for('login'))
 
 if __name__ == '__main__':
+    try:
+        create_database()
+    except psycopg2.errors.DuplicateDatabase:
+        pass
     init_db()
     app.run(debug=True)
