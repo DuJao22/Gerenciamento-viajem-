@@ -1,0 +1,12 @@
+# Exported from Render on 2025-01-29T15:19:49Z
+databases:
+- name: database
+  databaseName: database_shki
+  user: database_shki_user
+  plan: free
+  region: oregon
+  ipAllowList:
+  - source: 0.0.0.0/0
+    description: everywhere
+  postgresMajorVersion: "16"
+version: "1"
