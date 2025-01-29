@@ -1,16 +1,23 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash, send_file
-import sqlite3
+import psycopg2
 from datetime import datetime
 import os
 
 app = Flask(__name__)
 app.secret_key = 'super_secret_key'
 
+DATABASE_URL = "postgresql://database_shki_user:m0QsRSe6eUWAj70RuxAUJzmcj2dymZoO@dpg-cud3bjd6l47c7385qecg-a/database_shki"
+
+def get_db_connection():
+    conn = psycopg2.connect(DATABASE_URL)
+    return conn
+
 def init_db():
-    conn = sqlite3.connect('database.db')
-    conn.execute('''
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('''
         CREATE TABLE IF NOT EXISTS usuarios (
-            id INTEGER PRIMARY KEY,
+            id SERIAL PRIMARY KEY,
             nome TEXT,
             idade INTEGER,
             data_nascimento TEXT,
@@ -18,9 +25,9 @@ def init_db():
             senha TEXT
         )
     ''')
-    conn.execute('''
+    cursor.execute('''
         CREATE TABLE IF NOT EXISTS viagens (
-            id INTEGER PRIMARY KEY,
+            id SERIAL PRIMARY KEY,
             usuario_id INTEGER,
             numero_nota TEXT,
             destino TEXT,
@@ -29,9 +36,9 @@ def init_db():
             FOREIGN KEY(usuario_id) REFERENCES usuarios(id)
         )
     ''')
-    conn.execute('''
+    cursor.execute('''
         CREATE TABLE IF NOT EXISTS gastos (
-            id INTEGER PRIMARY KEY,
+            id SERIAL PRIMARY KEY,
             viagem_id INTEGER,
             motivo TEXT,
             observacao TEXT,
@@ -39,13 +46,20 @@ def init_db():
             FOREIGN KEY(viagem_id) REFERENCES viagens(id)
         )
     ''')
+    conn.commit()
+    cursor.close()
     conn.close()
 
 def generate_report(viagem_id):
-    conn = sqlite3.connect('database.db')
-    viagem = conn.execute('SELECT * FROM viagens WHERE id = ?', (viagem_id,)).fetchone()
-    gastos = conn.execute('SELECT * FROM gastos WHERE viagem_id = ?', (viagem_id,)).fetchall()
-    user = conn.execute('SELECT * FROM usuarios WHERE id = ?', (viagem[1],)).fetchone()
+    conn = get_db_connection()
+    cursor = conn.cursor()
+    cursor.execute('SELECT * FROM viagens WHERE id = %s', (viagem_id,))
+    viagem = cursor.fetchone()
+    cursor.execute('SELECT * FROM gastos WHERE viagem_id = %s', (viagem_id,))
+    gastos = cursor.fetchall()
+    cursor.execute('SELECT * FROM usuarios WHERE id = %s', (viagem[1],))
+    user = cursor.fetchone()
+    cursor.close()
     conn.close()
 
     total_gastos = sum(gasto[4] for gasto in gastos)
@@ -91,8 +105,11 @@ def login():
             session['user'] = 'admin'
             return redirect(url_for('admin'))
         else:
-            conn = sqlite3.connect('database.db')
-            user = conn.execute('SELECT * FROM usuarios WHERE login = ? AND senha = ?', (login, senha)).fetchone()
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute('SELECT * FROM usuarios WHERE login = %s AND senha = %s', (login, senha))
+            user = cursor.fetchone()
+            cursor.close()
             conn.close()
             if user:
                 session['user_id'] = user[0]
@@ -104,16 +121,19 @@ def login():
 @app.route('/admin', methods=['GET', 'POST'])
 def admin():
     if 'user' in session and session['user'] == 'admin':
-        conn = sqlite3.connect('database.db')
+        conn = get_db_connection()
+        cursor = conn.cursor()
         if request.method == 'POST':
             nome = request.form['nome']
             idade = request.form['idade']
             data_nascimento = request.form['data_nascimento']
             login = request.form['login']
             senha = request.form['senha']
-            conn.execute('INSERT INTO usuarios (nome, idade, data_nascimento, login, senha) VALUES (?, ?, ?, ?, ?)', (nome, idade, data_nascimento, login, senha))
+            cursor.execute('INSERT INTO usuarios (nome, idade, data_nascimento, login, senha) VALUES (%s, %s, %s, %s, %s)', (nome, idade, data_nascimento, login, senha))
             conn.commit()
-        usuarios = conn.execute('SELECT * FROM usuarios').fetchall()
+        cursor.execute('SELECT * FROM usuarios')
+        usuarios = cursor.fetchall()
+        cursor.close()
         conn.close()
         return render_template('admin.html', usuarios=usuarios)
     else:
@@ -123,11 +143,14 @@ def admin():
 def dashboard():
     if 'user_id' in session:
         user_id = session['user_id']
-        conn = sqlite3.connect('database.db')
-        user = conn.execute('SELECT * FROM usuarios WHERE id = ?', (user_id,)).fetchone()
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('SELECT * FROM usuarios WHERE id = %s', (user_id,))
+        user = cursor.fetchone()
         
         # Check for an ongoing trip
-        viagem = conn.execute('SELECT * FROM viagens WHERE usuario_id = ? AND finalizada = 0', (user_id,)).fetchone()
+        cursor.execute('SELECT * FROM viagens WHERE usuario_id = %s AND finalizada = 0', (user_id,))
+        viagem = cursor.fetchone()
 
         if viagem:
             if request.method == 'POST':
@@ -135,18 +158,21 @@ def dashboard():
                     motivo = request.form['motivo']
                     observacao = request.form['observacao']
                     valor = request.form['valor']
-                    conn.execute('INSERT INTO gastos (viagem_id, motivo, observacao, valor) VALUES (?, ?, ?, ?)', (viagem[0], motivo, observacao, valor))
+                    cursor.execute('INSERT INTO gastos (viagem_id, motivo, observacao, valor) VALUES (%s, %s, %s, %s)', (viagem[0], motivo, observacao, valor))
                     conn.commit()
                 elif 'finalizar' in request.form:
-                    conn.execute('UPDATE viagens SET finalizada = 1 WHERE id = ?', (viagem[0],))
+                    cursor.execute('UPDATE viagens SET finalizada = 1 WHERE id = %s', (viagem[0],))
                     conn.commit()
                     report_path = generate_report(viagem[0])
                     return redirect(url_for('download_report', viagem_id=viagem[0]))
 
-            gastos = conn.execute('SELECT * FROM gastos WHERE viagem_id = ?', (viagem[0],)).fetchall()
+            cursor.execute('SELECT * FROM gastos WHERE viagem_id = %s', (viagem[0],))
+            gastos = cursor.fetchall()
+            cursor.close()
             conn.close()
             return render_template('dashboard.html', user=user, viagem=viagem, gastos=gastos)
         else:
+            cursor.close()
             conn.close()
             return render_template('dashboard.html', user=user, viagem=None)
     else:
@@ -160,9 +186,11 @@ def inicio_viagem():
             numero_nota = request.form['numero_nota']
             destino = request.form['destino']
             data_inicio = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            conn = sqlite3.connect('database.db')
-            conn.execute('INSERT INTO viagens (usuario_id, numero_nota, destino, data_inicio, finalizada) VALUES (?, ?, ?, ?, ?)', (user_id, numero_nota, destino, data_inicio, False))
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute('INSERT INTO viagens (usuario_id, numero_nota, destino, data_inicio, finalizada) VALUES (%s, %s, %s, %s, %s)', (user_id, numero_nota, destino, data_inicio, False))
             conn.commit()
+            cursor.close()
             conn.close()
             return redirect(url_for('dashboard'))
         return render_template('inicio_viagem.html')
@@ -172,9 +200,11 @@ def inicio_viagem():
 @app.route('/finalizar_viagem/<int:viagem_id>', methods=['POST'])
 def finalizar_viagem(viagem_id):
     if 'user_id' in session:
-        conn = sqlite3.connect('database.db')
-        conn.execute('UPDATE viagens SET finalizada = 1 WHERE id = ?', (viagem_id,))
+        conn = get_db_connection()
+        cursor = conn.cursor()
+        cursor.execute('UPDATE viagens SET finalizada = 1 WHERE id = %s', (viagem_id,))
         conn.commit()
+        cursor.close()
         conn.close()
         report_path = generate_report(viagem_id)
         return redirect(url_for('download_report', viagem_id=viagem_id))
